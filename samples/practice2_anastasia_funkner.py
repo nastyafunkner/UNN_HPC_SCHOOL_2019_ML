@@ -9,10 +9,7 @@ from ie_detector import InferenceEngineDetector
 
 def build_argparse():
     parser = argparse.ArgumentParser()
-
-    #
-    # Add your code here
-    #
+    parser.add_argument('-i', '--input_path', help='input image path', type=str)
 
     return parser
 
@@ -23,9 +20,23 @@ def main():
     log.info("Hello object detection!")
     args = build_argparse().parse_args()
 
-    #
-    # Add your code here
-    #
+    my_detector = InferenceEngineDetector(
+        r'C:\public\mobilenet-ssd\FP32\mobilenet-ssd.bin',
+        r'C:\public\mobilenet-ssd\FP32\mobilenet-ssd.xml',
+        'CPU',
+        r'C:\Program Files (x86)\IntelSWTools\openvino_2019.3.379\inference_engine\bin\intel64\Release\cpu_extension_avx2.dll'
+    )
+
+    image_path = args.input_path
+    log.info(args.input_path)
+
+    image = cv2.imread(image_path)
+
+    print(my_detector.detect(image))
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
     return
 
