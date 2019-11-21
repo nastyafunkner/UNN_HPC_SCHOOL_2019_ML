@@ -51,7 +51,7 @@ class InferenceEngineDetector:
             self.class_names_dict = dict(enumerate(open(class_names_path).readlines()))
             class_num = len(self.class_names_dict)
 
-        self.color_dict = dict(enumerate(map(lambda nums: tuple([int(c * 255) for c in nums]),
+        self.color_dict = dict(enumerate(map(lambda nums: tuple(int(c * 255) for c in nums),
                                              color_map(np.linspace(0, 1, class_num)))))
 
         return
@@ -63,10 +63,12 @@ class InferenceEngineDetector:
                     1, cv2.LINE_AA)
         return img
 
-    def draw_detection(self, detections, img):
+    def draw_detection(self, detections, img, conf_low=0.5):
         for det in detections:
             if any(det[1:]):
                 image_id, label, conf, *init_coors = det
+                if conf < conf_low:
+                    continue
                 # print(init_coors)
                 point_1 = renormalize_coordinates(init_coors[:2], img.shape)
                 point_2 = renormalize_coordinates(init_coors[2:], img.shape)
@@ -78,7 +80,7 @@ class InferenceEngineDetector:
 
     @staticmethod
     def _prepare_image(image, h, w):
-        image = cv2.resize(image, (h, w))
+        image = cv2.resize(image, (w, h))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = image.transpose((2, 0, 1))
         image = np.expand_dims(image, axis=0)
@@ -91,6 +93,7 @@ class InferenceEngineDetector:
         n, c, h, w = self.net.inputs[input_blob].shape
 
         blob = self._prepare_image(image, h, w)
+
 
         output = self.exec_net.infer(inputs={input_blob: blob})
 

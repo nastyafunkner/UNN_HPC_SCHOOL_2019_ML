@@ -22,12 +22,12 @@ def main():
     args = build_argparse().parse_args()
 
     my_detector = InferenceEngineDetector(
-        r'C:\public\mobilenet-ssd\FP32\mobilenet-ssd_i8.bin',
-        r'C:\public\mobilenet-ssd\FP32\mobilenet-ssd_i8.xml',
+        r'C:\UNN_HPC_SCHOOL_2019_ML\samples\intel\pedestrian-and-vehicle-detector-adas-0001\FP32\pedestrian-and-vehicle-detector-adas-0001.bin',
+        r'C:\UNN_HPC_SCHOOL_2019_ML\samples\intel\pedestrian-and-vehicle-detector-adas-0001\FP32\pedestrian-and-vehicle-detector-adas-0001.xml',
         'CPU',
         r'C:\Program Files (x86)\IntelSWTools\openvino_2019.3.379\inference_engine\bin\intel64\Release\cpu_extension_avx2.dll',
-        20,
-        r'C:\UNN_HPC_SCHOOL_2019_ML\src\names_classes',
+        10,
+        r'C:\UNN_HPC_SCHOOL_2019_ML\src\names_classes_2',
 
     )
 
@@ -76,3 +76,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
