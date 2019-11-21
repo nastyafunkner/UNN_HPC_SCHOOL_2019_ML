@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
-from openvino.inference_engine import IENetwork, IECore
 
-CLASS_NAMES = dict(enumerate(open(r'C:\UNN_HPC_SCHOOL_2019_ML\src\names_classes').readlines()))
+from matplotlib import cm, colors
+from openvino.inference_engine import IENetwork, IECore
 
 
 def renormalize(n, range2):
@@ -11,8 +11,8 @@ def renormalize(n, range2):
 
 
 def renormalize_coordinates(point, scale_len):
-    return (renormalize(point[0], (0, scale_len)),
-            renormalize(point[1], (0, scale_len)))
+    return (renormalize(point[0], (0, scale_len[1])),
+            renormalize(point[1], (0, scale_len[0])))
 
 
 def write_conf(conf, point, img, shift=20):
@@ -23,17 +23,11 @@ def write_conf(conf, point, img, shift=20):
     return img
 
 
-def write_class(class_num, point, img, shift=20):
-    new_point = point[0] + shift, point[1] + shift
-    cv2.putText(img, CLASS_NAMES[class_num].strip(), new_point,
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0),
-                1, cv2.LINE_AA)
-    return img
-
-
 class InferenceEngineDetector:
     def __init__(self, weightsPath=None, configPath=None,
-                 device='CPU', extension=None):
+                 device='CPU', extension=None, class_num=10,
+                 class_names_path=None,
+                 color_map=cm.Set3):
         """
         :param weightsPath: Путь до bin-файла модели.
         :param configPath:Путь до xml-файла модели.
@@ -51,18 +45,34 @@ class InferenceEngineDetector:
 
         self.exec_net = self.ie.load_network(network=self.net, device_name=device)
 
+        self.class_names_dict = dict(enumerate([" "] * class_num))
+
+        if class_names_path is not None:
+            self.class_names_dict = dict(enumerate(open(class_names_path).readlines()))
+            class_num = len(self.class_names_dict)
+
+        self.color_dict = dict(enumerate(map(lambda nums: tuple([int(c * 255) for c in nums]),
+                                             color_map(np.linspace(0, 1, class_num)))))
+
         return
 
-    @staticmethod
-    def draw_detection(detections, img):
-        print(CLASS_NAMES)
+    def write_class(self, class_num, point, img, shift=20):
+        new_point = point[0] + shift, point[1] + shift
+        cv2.putText(img, self.class_names_dict[class_num].strip(), new_point,
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, self.color_dict[class_num],
+                    1, cv2.LINE_AA)
+        return img
+
+    def draw_detection(self, detections, img):
         for det in detections:
             if any(det[1:]):
                 image_id, label, conf, *init_coors = det
-                point_1 = renormalize_coordinates(init_coors[:2], img.shape[0])
-                point_2 = renormalize_coordinates(init_coors[2:], img.shape[1])
-                cv2.rectangle(img, point_1, point_2, (0, 255, 0), 1)
-                write_class(label, point_1, img)
+                # print(init_coors)
+                point_1 = renormalize_coordinates(init_coors[:2], img.shape)
+                point_2 = renormalize_coordinates(init_coors[2:], img.shape)
+                # print(point_1, point_2)
+                cv2.rectangle(img, point_1, point_2, self.color_dict[label], 1)
+                self.write_class(label, point_1, img)
 
         return img
 
@@ -86,11 +96,11 @@ class InferenceEngineDetector:
 
         output = output[out_blob]
 
-        cv2.imshow("Detections", self.draw_detection(output[0][0], image))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow("Detections", self.draw_detection(output[0][0], image))
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         # !!!!
         detection = output
 
-        return detection
+        return self.draw_detection(output[0][0], image)
