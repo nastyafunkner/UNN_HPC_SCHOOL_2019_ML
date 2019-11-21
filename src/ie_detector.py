@@ -85,7 +85,7 @@ class InferenceEngineDetector:
 
         return image
 
-    def detect(self, image):
+    def detect(self, image, return_detection=True):
         input_blob = next(iter(self.net.inputs))
         out_blob = next(iter(self.net.outputs))
         n, c, h, w = self.net.inputs[input_blob].shape
@@ -101,6 +101,7 @@ class InferenceEngineDetector:
         # cv2.destroyAllWindows()
 
         # !!!!
-        detection = output
-
-        return self.draw_detection(output[0][0], image)
+        if return_detection:
+            return output
+        else:
+            return self.draw_detection(output[0][0], image)

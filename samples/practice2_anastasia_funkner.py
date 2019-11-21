@@ -22,8 +22,8 @@ def main():
     args = build_argparse().parse_args()
 
     my_detector = InferenceEngineDetector(
-        r'C:\public\mobilenet-ssd\FP16\mobilenet-ssd.bin',
-        r'C:\public\mobilenet-ssd\FP16\mobilenet-ssd.xml',
+        r'C:\public\mobilenet-ssd\FP32\mobilenet-ssd_i8.bin',
+        r'C:\public\mobilenet-ssd\FP32\mobilenet-ssd_i8.xml',
         'CPU',
         r'C:\Program Files (x86)\IntelSWTools\openvino_2019.3.379\inference_engine\bin\intel64\Release\cpu_extension_avx2.dll',
         20,
@@ -35,7 +35,7 @@ def main():
         image_path = args.image_path
 
         image = cv2.imread(image_path)
-        cv2.imshow('Frame', my_detector.detect(image))
+        cv2.imshow('Frame', my_detector.detect(image, False))
 
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -56,7 +56,7 @@ def main():
             if ret:
 
                 # Display the resulting frame
-                cv2.imshow('Frame', my_detector.detect(frame))
+                cv2.imshow('Frame', my_detector.detect(frame, False))
 
                 # Press Q on keyboard to  exit
                 if cv2.waitKey(25) & 0xFF == ord('q'):
